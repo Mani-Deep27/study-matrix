@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Matrix</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f0e8;
+  --surface: #ede8df;
+  --card: #ffffff;
+  --border: #d8d0c0;
+  --ink: #1a1612;
+  --ink2: #4a4540;
+  --muted: #8a837a;
+  --accent: #c84b2f;
+  --accent2: #2d6a4f;
+  --accent3: #e07b39;
+  --accent4: #2c5282;
+  --yellow: #f4c430;
+  --mono: 'JetBrains Mono', monospace;
+  --display: 'Outfit', sans-serif;
+  --radius: 14px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--display);
+  min-height: 100vh;
+}
+
+/* NOISE TEXTURE */
+body::after {
+  content:'';
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:9999;
+  opacity:0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* LAYOUT */
+.shell { display:flex; min-height:100vh; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 220px;
+  background: var(--ink);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top:0; left:0; bottom:0;
+  z-index: 100;
+  padding: 28px 0 20px;
+}
+
+.logo {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--yellow);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  padding: 0 22px 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.logo-sub { color: rgba(255,255,255,0.3); font-size: 0.6rem; margin-top:3px; letter-spacing:1px; }
+
+.nav { padding: 16px 0; flex:1; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 22px;
+  color: rgba(255,255,255,0.45);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+  letter-spacing: 0.3px;
+}
+
+.nav-item:hover { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.05); }
+.nav-item.active { color: var(--yellow); background: rgba(244,196,48,0.08); border-left-color: var(--yellow); }
+.nav-icon { font-size: 1rem; width:20px; text-align:center; }
+
+.sidebar-profile {
+  padding: 16px 22px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.sp-name { color: #fff; font-size: 0.82rem; font-weight: 600; }
+.sp-meta { color: rgba(255,255,255,0.35); font-size: 0.65rem; font-family: var(--mono); margin-top:2px; }
+.sp-avatar {
+  width: 34px; height: 34px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: flex; align-items:center; justify-content:center;
+  font-weight:700; color:#fff; font-size:0.85rem;
+  margin-bottom: 10px;
+}
+
+/* MAIN */
+.main { margin-left:220px; flex:1; padding: 32px 36px; max-width: calc(100vw - 220px); }
+
+/* PANELS */
+.panel { display:none; animation: fadeUp 0.3s ease; }
+.panel.active { display:block; }
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(12px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
+/* PAGE TITLE */
+.page-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+  letter-spacing:-0.5px;
+}
+
+.page-sub { color: var(--muted); font-size:0.85rem; margin-bottom:28px; }
+
+/* CARDS */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.card-head {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:18px;
+}
+
+.card-title {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+/* INPUTS */
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px; }
+.form-grid-3 { grid-template-columns:1fr 1fr 1fr; }
+.form-full { grid-column: 1/-1; }
+
+.field { display:flex; flex-direction:column; gap:5px; }
+
+label {
+  font-family: var(--mono);
+  font-size:0.62rem;
+  color:var(--muted);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+}
+
+input[type=text], input[type=number], input[type=email], input[type=date], select, textarea {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 10px 14px;
+  font-family: var(--display);
+  font-size: 0.88rem;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width:100%;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(200,75,47,0.08);
+}
+
+textarea { resize:vertical; min-height:70px; }
+select option { background: #fff; }
+
+input[type=date] { cursor:pointer; }
+input[type=date]::-webkit-calendar-picker-indicator {
+  cursor:pointer;
+  opacity:0.65;
+  filter: invert(0.35) sepia(1) saturate(4) hue-rotate(-10deg);
+  padding:4px;
+  border-radius:5px;
+}
+input[type=date]::-webkit-calendar-picker-indicator:hover { opacity:1; background:var(--border); }
+
+/* BUTTONS */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 9px;
+  font-family: var(--display);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  display:inline-flex; align-items:center; gap:6px;
+}
+
+.btn-primary { background: var(--accent); color:#fff; }
+.btn-primary:hover { background:#a83820; transform:translateY(-1px); box-shadow:0 4px 12px rgba(200,75,47,0.25); }
+.btn-green { background: var(--accent2); color:#fff; }
+.btn-green:hover { background:#1e5c3a; }
+.btn-sm { padding:6px 12px; font-size:0.72rem; }
+.btn-ghost { background:transparent; border:1px solid var(--border); color:var(--ink2); }
+.btn-ghost:hover { background:var(--surface); }
+.btn-icon { padding:7px; border-radius:7px; background:var(--surface); border:1px solid var(--border); color:var(--muted); font-size:0.85rem; cursor:pointer; transition:all 0.15s; }
+.btn-icon:hover { background:var(--border); color:var(--ink); }
+
+/* DASHBOARD */
+.stat-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  position:relative; overflow:hidden;
+}
+
+.stat-accent {
+  position:absolute; top:0; left:0; width:4px; height:100%;
+}
+
+.stat-val { font-size:2rem; font-weight:700; line-height:1; margin-bottom:4px; }
+.stat-lbl { font-family:var(--mono); font-size:0.62rem; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; }
+.stat-icon { position:absolute; right:16px; top:16px; font-size:1.4rem; opacity:0.15; }
+
+/* PROGRESS */
+.progress-track { height:6px; background:var(--surface); border-radius:99px; overflow:hidden; margin-top:8px; }
+.progress-fill { height:100%; border-radius:99px; transition:width 0.7s ease; }
+
+/* GRADE TABLE */
+.grade-table { width:100%; border-collapse:collapse; }
+.grade-table th {
+  font-family:var(--mono); font-size:0.6rem; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--muted); text-align:left; padding:8px 12px; border-bottom:1px solid var(--border);
+}
+.grade-table td { padding:12px 12px; border-bottom:1px solid var(--surface); font-size:0.88rem; vertical-align:middle; }
+.grade-table tr:last-child td { border-bottom:none; }
+.grade-table tr:hover td { background:var(--surface); }
+
+.grade-pill {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:38px; height:28px;
+  border-radius:6px;
+  font-family:var(--mono); font-size:0.8rem; font-weight:500;
+}
+
+.sem-header td {
+  background: var(--surface);
+  font-family: var(--mono);
+  font-size:0.62rem;
+  letter-spacing:2px;
+  color:var(--muted);
+  text-transform:uppercase;
+  padding:8px 12px;
+  font-weight:700;
+}
+
+/* CGPA BIG */
+.cgpa-hero {
+  background: var(--ink);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  display:flex; align-items:center; gap:32px;
+  margin-bottom:18px;
+  position:relative; overflow:hidden;
+}
+
+.cgpa-hero::before {
+  content:'';
+  position:absolute; right:-30px; top:-30px;
+  width:160px; height:160px;
+  border-radius:50%;
+  background: rgba(244,196,48,0.06);
+}
+
+.cgpa-big { font-size:4rem; font-weight:700; color:var(--yellow); font-family:var(--mono); line-height:1; }
+.cgpa-desc { color:rgba(255,255,255,0.5); font-size:0.75rem; margin-top:4px; font-family:var(--mono); letter-spacing:1px; }
+.cgpa-grade-label { font-size:1.1rem; color:#fff; font-weight:600; margin-top:8px; }
+
+/* TASKS */
+.task-add { display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+.task-add input { flex:1; min-width:180px; }
+
+.task-item {
+  display:flex; align-items:flex-start; gap:12px;
+  padding:14px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  margin-bottom:8px;
+  transition: all 0.2s;
+  animation: slideIn 0.25s ease;
+}
+
+@keyframes slideIn { from { opacity:0; transform:translateX(-8px); } to { opacity:1; transform:translateX(0); } }
+
+.task-item:hover { border-color:#b0a898; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+.task-item.done { opacity:0.45; }
+.task-item.done .task-text { text-decoration:line-through; color:var(--muted); }
+
+.task-check {
+  width:20px; height:20px;
+  border:2px solid var(--border);
+  border-radius:6px;
+  flex-shrink:0; margin-top:2px;
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:all 0.2s;
+}
+
+.task-item.done .task-check { background:var(--accent2); border-color:var(--accent2); }
+.task-item.done .task-check::after { content:'✓'; color:#fff; font-size:0.75rem; font-weight:700; }
+
+.task-body { flex:1; min-width:0; }
+.task-text { font-size:0.9rem; font-weight:500; margin-bottom:4px; }
+.task-meta { font-family:var(--mono); font-size:0.62rem; color:var(--muted); }
+.task-actions { display:flex; gap:6px; align-items:center; flex-shrink:0; }
+
+.p-tag {
+  font-family:var(--mono); font-size:0.58rem; padding:3px 8px;
+  border-radius:5px; text-transform:uppercase; letter-spacing:1px; font-weight:500;
+}
+
+.p-high { background:#fee2e2; color:#b91c1c; }
+.p-medium { background:#fef9c3; color:#a16207; }
+.p-low { background:#dbeafe; color:#1e40af; }
+
+/* ATTACHMENTS */
+.attach-list { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+
+.attach-thumb {
+  position:relative;
+  width:56px; height:56px;
+  border-radius:8px;
+  overflow:hidden;
+  border:1px solid var(--border);
+  cursor:pointer;
+  transition: transform 0.15s;
+}
+
+.attach-thumb:hover { transform:scale(1.05); }
+.attach-thumb img { width:100%; height:100%; object-fit:cover; }
+
+.attach-pdf {
+  width:56px; height:56px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  cursor:pointer; transition:all 0.15s;
+  text-decoration:none;
+}
+
+.attach-pdf:hover { background:var(--border); }
+.attach-pdf-icon { font-size:1.3rem; }
+.attach-pdf-label { font-family:var(--mono); font-size:0.5rem; color:var(--muted); margin-top:2px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; width:50px; text-align:center; }
+
+.attach-rm { position:absolute; top:2px; right:2px; width:16px; height:16px; background:rgba(0,0,0,0.6); color:#fff; border:none; border-radius:50%; font-size:0.55rem; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+
+/* PROFILE */
+.profile-wrap { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+.avatar-section { display:flex; flex-direction:column; align-items:center; gap:12px; padding:28px; background:var(--surface); border-radius:12px; }
+.avatar-big { width:80px; height:80px; background:var(--accent); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:2rem; font-weight:700; color:#fff; }
+.profile-name-big { font-size:1.1rem; font-weight:700; color:var(--ink); }
+.profile-branch { font-family:var(--mono); font-size:0.65rem; color:var(--muted); }
+
+/* FILTER ROW */
+.filter-row { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+.fbtn { padding:6px 14px; border-radius:7px; border:1px solid var(--border); background:var(--card); color:var(--muted); font-family:var(--mono); font-size:0.62rem; letter-spacing:1px; cursor:pointer; transition:all 0.15s; text-transform:uppercase; }
+.fbtn.active { background:var(--ink); color:var(--yellow); border-color:var(--ink); }
+
+/* FILE INPUT STYLED */
+.file-drop {
+  border:2px dashed var(--border);
+  border-radius:10px;
+  padding:14px;
+  text-align:center;
+  cursor:pointer;
+  transition:all 0.2s;
+  font-family:var(--mono);
+  font-size:0.68rem;
+  color:var(--muted);
+  letter-spacing:1px;
+  position:relative;
+}
+
+.file-drop:hover { border-color:var(--accent); color:var(--accent); background:rgba(200,75,47,0.03); }
+.file-drop input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+
+/* MODAL */
+.modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:500; align-items:center; justify-content:center; }
+.modal-bg.open { display:flex; }
+.modal { background:var(--card); border-radius:16px; padding:28px; width:90%; max-width:480px; max-height:85vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.2); animation:fadeUp 0.25s ease; }
+.modal-title { font-size:1.1rem; font-weight:700; margin-bottom:18px; }
+.modal-close { float:right; background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--muted); }
+
+/* LOGIN */
+.login-screen {
+  position:fixed; inset:0; z-index:5000;
+  background: var(--ink);
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+  transition: opacity .55s ease, visibility .55s ease;
+}
+.login-screen.hide { opacity:0; visibility:hidden; pointer-events:none; }
+
+.login-blob {
+  position:absolute; border-radius:50%;
+  filter: blur(70px);
+  opacity:0.28;
+  animation: loginDrift 16s ease-in-out infinite alternate;
+}
+.blob-a { width:360px; height:360px; background:var(--accent); top:-90px; left:-70px; }
+.blob-b { width:320px; height:320px; background:var(--yellow); bottom:-100px; right:-70px; animation-duration:20s; animation-delay:-4s; }
+
+@keyframes loginDrift {
+  from { transform:translate(0,0) scale(1); }
+  to   { transform:translate(34px,24px) scale(1.1); }
+}
+
+.login-card {
+  position:relative; z-index:1;
+  background: var(--card);
+  border-radius: 18px;
+  padding: 38px 34px;
+  width:90%; max-width:360px;
+  text-align:center;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+  animation: fadeUp .6s ease;
+}
+
+.login-mark { font-size:2.1rem; margin-bottom:10px; animation: loginFloat 3.2s ease-in-out infinite; }
+@keyframes loginFloat { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); } }
+
+.login-title { font-size:1.3rem; font-weight:700; color:var(--ink); margin-bottom:4px; }
+.login-sub { color:var(--muted); font-size:0.8rem; margin-bottom:22px; }
+
+.login-form .field { margin-bottom:14px; text-align:left; }
+.login-btn { width:100%; justify-content:center; margin-top:4px; }
+.login-switch {
+  width:100%; margin-top:12px; background:none; border:none;
+  color:var(--muted); font-family:var(--display); font-size:0.75rem;
+  text-decoration:underline; cursor:pointer;
+}
+.login-switch:hover { color:var(--accent); }
+
+.login-avatar {
+  width:64px; height:64px; border-radius:50%; background:var(--accent);
+  color:#fff; display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:1.5rem; margin:0 auto 12px;
+  animation: loginFloat 3.2s ease-in-out infinite;
+}
+.login-name { font-size:1.1rem; font-weight:700; color:var(--ink); }
+.login-meta { font-family:var(--mono); font-size:0.65rem; color:var(--muted); margin-bottom:22px; margin-top:2px; }
+
+.app-hidden { opacity:0; pointer-events:none; }
+.shell { transition: opacity .5s ease .05s; }
+
+.sp-switch {
+  margin-top:10px; width:100%;
+  background:none; border:1px solid rgba(255,255,255,0.15);
+  color:rgba(255,255,255,0.5); font-family:var(--mono); font-size:0.6rem;
+  letter-spacing:0.5px; padding:6px 8px; border-radius:6px; cursor:pointer;
+  transition: all 0.15s;
+}
+.sp-switch:hover { color:#fff; border-color:rgba(255,255,255,0.3); }
+
+/* EMPTY */
+.empty { text-align:center; padding:40px; color:var(--muted); font-family:var(--mono); font-size:0.72rem; letter-spacing:1px; }
+.empty-icon { font-size:2rem; margin-bottom:10px; opacity:0.4; }
+
+/* TOAST */
+.toast { position:fixed; bottom:24px; right:24px; background:var(--ink); color:var(--yellow); font-family:var(--mono); font-size:0.72rem; padding:12px 20px; border-radius:10px; opacity:0; transform:translateY(8px); transition:all 0.25s; z-index:9000; letter-spacing:1px; }
+.toast.show { opacity:1; transform:translateY(0); }
+
+/* LIGHTBOX */
+.lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:8000; align-items:center; justify-content:center; }
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; border-radius:8px; }
+.lightbox-close { position:absolute; top:20px; right:24px; color:#fff; font-size:2rem; cursor:pointer; background:none; border:none; }
+
+/* RESPONSIVE */
+@media(max-width:700px){
+  .sidebar{width:60px;}
+  .nav-item span:not(.nav-icon){display:none;}
+  .logo-sub,.sp-name,.sp-meta,.sp-switch{display:none;}
+  .logo{font-size:0.55rem;padding:0 10px 20px;}
+  .nav-item{padding:12px;justify-content:center;}
+  .main{margin-left:60px;padding:20px 14px;}
+  .stat-row{grid-template-columns:1fr 1fr;}
+  .form-grid,.form-grid-3,.profile-wrap{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-blob blob-a"></div>
+  <div class="login-blob blob-b"></div>
+  <div class="login-card" id="login-card">
+    <div class="login-mark">📘</div>
+    <div class="login-title" id="login-title">Welcome</div>
+    <div class="login-sub" id="login-sub">Set up your profile to get started</div>
+
+    <div id="login-new" class="login-form">
+      <div class="field">
+        <label>Your Name</label>
+        <input type="text" id="li-name" placeholder="e.g. Manideep Chowdary" onkeydown="if(event.key==='Enter') loginSubmit()">
+      </div>
+      <div class="field">
+        <label>Roll Number (optional)</label>
+        <input type="text" id="li-roll" placeholder="e.g. 21BCS042" onkeydown="if(event.key==='Enter') loginSubmit()">
+      </div>
+      <button class="btn btn-primary login-btn" onclick="loginSubmit()">Enter Study Matrix →</button>
+    </div>
+
+    <div id="login-back" class="login-form" style="display:none">
+      <div class="login-avatar" id="login-avatar">?</div>
+      <div class="login-name" id="login-name">—</div>
+      <div class="login-meta" id="login-meta">—</div>
+      <button class="btn btn-primary login-btn" onclick="loginContinue()">Continue to Dashboard →</button>
+      <button class="login-switch" onclick="loginSwitchUser()">Not you? Switch profile</button>
+    </div>
+  </div>
+</div>
+
+<div class="shell app-hidden">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">Study Matrix</div>
+  <nav class="nav">
+    <div class="nav-item active" onclick="switchPanel('dashboard',this)"><span class="nav-icon">📊</span><span>Dashboard</span></div>
+    <div class="nav-item" onclick="switchPanel('profile',this)"><span class="nav-icon">👤</span><span>My Profile</span></div>
+    <div class="nav-item" onclick="switchPanel('tasks',this)"><span class="nav-icon">✅</span><span>Study Tasks</span></div>
+    <div class="nav-item" onclick="switchPanel('grades',this)"><span class="nav-icon">🎓</span><span>Previous Results</span></div>
+    <div class="nav-item" onclick="switchPanel('notes',this)"><span class="nav-icon">📎</span><span>My Notes</span></div>
+  </nav>
+  <div class="sidebar-profile">
+    <div class="sp-avatar" id="sb-avatar">?</div>
+    <div class="sp-name" id="sb-name">Not set up</div>
+    <div class="sp-meta" id="sb-meta">—</div>
+    <button class="sp-switch" onclick="showLoginAgain()" title="Switch profile">↺ SWITCH</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- DASHBOARD -->
+  <div id="panel-dashboard" class="panel active">
+    <div class="page-title">Good to see you, <span id="d-greeting">Student</span> 👋</div>
+    <div class="page-sub">Here's your academic overview</div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-accent" style="background:var(--accent)"></div>
+        <div class="stat-icon">🎓</div>
+        <div class="stat-val" id="d-cgpa" style="color:var(--accent)">—</div>
+        <div class="stat-lbl">CGPA</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-accent" style="background:var(--accent2)"></div>
+        <div class="stat-icon">✅</div>
+        <div class="stat-val" id="d-tasks" style="color:var(--accent2)">0</div>
+        <div class="stat-lbl">Tasks Pending</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-accent" style="background:var(--accent3)"></div>
+        <div class="stat-icon">📚</div>
+        <div class="stat-val" id="d-subs" style="color:var(--accent3)">0</div>
+        <div class="stat-lbl">Subjects Added</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-accent" style="background:var(--accent4)"></div>
+        <div class="stat-icon">📎</div>
+        <div class="stat-val" id="d-notes" style="color:var(--accent4)">0</div>
+        <div class="stat-lbl">Notes Saved</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:14px">Today's High Priority Tasks</div>
+        <div id="d-task-list"><div class="empty"><div class="empty-icon">🎯</div>No pending tasks</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:14px">Subject Performance</div>
+        <div id="d-perf-chart"><div class="empty"><div class="empty-icon">📊</div>No results yet</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div id="panel-profile" class="panel">
+    <div class="page-title">My Profile</div>
+    <div class="page-sub">Your academic identity</div>
+    <div class="card">
+      <div class="profile-wrap">
+        <div class="avatar-section">
+          <div class="avatar-big" id="p-avatar-big">?</div>
+          <div class="profile-name-big" id="p-name-big">—</div>
+          <div class="profile-branch" id="p-branch-big">—</div>
+          <div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:4px" id="p-roll-big">—</div>
+        </div>
+        <div>
+          <div class="form-grid" style="margin-bottom:0">
+            <div class="field">
+              <label>Full Name</label>
+              <input type="text" id="p-name" placeholder="Your full name" oninput="saveProfile()">
+            </div>
+            <div class="field">
+              <label>Roll Number</label>
+              <input type="text" id="p-roll" placeholder="e.g. 21BCS042" oninput="saveProfile()">
+            </div>
+            <div class="field">
+              <label>Branch</label>
+              <select id="p-branch" onchange="saveProfile()">
+                <option value="">Select Branch</option>
+                <option>CSE</option>
+                <option>AI</option>
+                <option>AIML</option>
+                <option>DS</option>
+                <option>CS</option>
+                <option>ECE</option>
+                <option>EEE</option>
+                <option>Mechanical</option>
+                <option>Civil</option>
+                <option>IT</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Year / Semester</label>
+              <select id="p-year" onchange="saveProfile()">
+                <option value = "">Select Year & Semester</option>
+                <option>1st Year - Sem 1</option>
+                <option>1st Year - Sem 2</option>
+                <option>2nd Year - Sem 1</option>
+                <option>2nd Year - Sem 2</option>
+                <option>3rd Year - Sem 1</option>
+                <option>3rd Year - Sem 2</option>
+                <option>4th Year - Sem 1</option>
+                <option>4th Year - Sem 2</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>College Name</label>
+              <input type="text" id="p-college" placeholder="Your college" oninput="saveProfile()">
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <input type="email" id="p-email" placeholder="student@college.ac.in" oninput="saveProfile()">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TASKS -->
+  <div id="panel-tasks" class="panel">
+    <div class="page-title">Study Tasks</div>
+    <div class="page-sub">Current semester — plan what to study, track what's done</div>
+
+    <div class="card" style="border-left:4px solid var(--accent2)">
+      <div class="card-title" style="margin-bottom:12px">Current Semester Subjects</div>
+      <div style="display:flex;gap:10px;margin-bottom:10px">
+        <input type="text" id="cs-input" placeholder="e.g. Operating Systems" style="flex:1" onkeydown="if(event.key==='Enter') addCurrentSubject()">
+        <button class="btn btn-green" onclick="addCurrentSubject()">+ Add</button>
+      </div>
+      <div id="cs-list"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px">Add New Task</div>
+      <div class="task-add">
+        <input type="text" id="t-text" placeholder="e.g. Revise Unit 3 – Operating Systems" style="flex:2">
+        <select id="t-priority" style="width:130px">
+          <option value="high">🔴 High</option>
+          <option value="medium" selected>🟡 Medium</option>
+          <option value="low">🔵 Low</option>
+        </select>
+        <select id="t-subject" style="width:160px">
+          <option value="">No subject</option>
+        </select>
+        <input type="date" id="t-due" style="width:145px" title="Due date (optional)">
+        <button class="btn btn-primary" onclick="addTask()">+ Add Task</button>
+      </div>
+      <div class="field">
+        <label>Note (optional)</label>
+        <textarea id="t-note" placeholder="Add any details, page numbers, reference..." style="min-height:55px"></textarea>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <button class="fbtn active" onclick="filterTask('all',this)">All</button>
+      <button class="fbtn" onclick="filterTask('pending',this)">Pending</button>
+      <button class="fbtn" onclick="filterTask('done',this)">Done</button>
+      <button class="fbtn" onclick="filterTask('high',this)">🔴 High</button>
+      <button class="fbtn" onclick="filterTask('medium',this)">🟡 Medium</button>
+      <button class="fbtn" onclick="filterTask('low',this)">🔵 Low</button>
+    </div>
+
+    <div id="tasks-list"></div>
+  </div>
+
+  <!-- GRADES -->
+  <div id="panel-grades" class="panel">
+    <div class="page-title">Previous Results</div>
+    <div class="page-sub">Add results after each semester is declared — track your CGPA growth</div>
+
+    <div class="cgpa-hero">
+      <div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:rgba(255,255,255,0.3);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">Cumulative GPA</div>
+        <div class="cgpa-big" id="cgpa-big">—</div>
+        <div class="cgpa-grade-label" id="cgpa-label">No results yet</div>
+        <div class="cgpa-desc">Based on <span id="cgpa-subs">0</span> subjects across <span id="cgpa-sems">0</span> semesters</div>
+      </div>
+      <div style="flex:1">
+        <div style="color:rgba(255,255,255,0.3);font-family:var(--mono);font-size:0.6rem;letter-spacing:1.5px;margin-bottom:10px">CGPA SCALE</div>
+        <div style="display:flex;flex-direction:column;gap:5px" id="cgpa-scale"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px">Add Subject Result</div>
+      <div class="form-grid form-grid-3">
+        <div class="field">
+          <label>Subject Name</label>
+          <input type="text" id="g-name" placeholder="e.g. Data Structures">
+        </div>
+        <div class="field">
+          <label>Semester</label>
+          <select id="g-sem">
+            <option>1st Year - Sem 1</option>
+                <option>1st Year - Sem 2</option>
+                <option>2nd Year - Sem 1</option>
+                <option>2nd Year - Sem 2</option>
+                <option>3rd Year - Sem 1</option>
+                <option>3rd Year - Sem 2</option>
+                <option>4th Year - Sem 1</option>
+                <option>4th Year - Sem 2</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Grade Point (0–10)</label>
+          <input type="number" id="g-grade" placeholder="e.g. 8.5" min="0" max="10" step="0.1" oninput="onGradeInput()">
+        </div>
+        <div class="field">
+          <label>Credits</label>
+          <input type="number" id="g-credits" placeholder="e.g. 4" min="1" max="6">
+        </div>
+        <div class="field">
+          <label>Grade Letter (auto)</label>
+          <div id="g-letter-display" style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-family:var(--mono);font-size:0.88rem;color:var(--muted);min-height:40px">— enter grade point above</div>
+        </div>
+        <div class="field" style="align-self:end">
+          <button class="btn btn-primary" style="width:100%" onclick="addGrade()">+ Add Result</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="grades-list"></div>
+  </div>
+
+  <!-- NOTES -->
+  <div id="panel-notes" class="panel">
+    <div class="page-title">My Notes & Files</div>
+    <div class="page-sub">Attach PDFs, images, class notes per subject</div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px">Upload Note / File</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Title</label>
+          <input type="text" id="n-title" placeholder="e.g. OS Unit 3 Notes">
+        </div>
+        <div class="field">
+          <label>Subject</label>
+          <select id="n-subject">
+            <option value="">General</option>
+          </select>
+        </div>
+        <div class="field form-full">
+          <label>Description (optional)</label>
+          <textarea id="n-desc" placeholder="What's in this file?..." style="min-height:50px"></textarea>
+        </div>
+        <div class="field form-full">
+          <label>Attach Files (Images / PDF)</label>
+          <div class="file-drop" id="note-drop">
+            📎 Click or drag to attach files (images or PDFs)
+            <input type="file" id="n-files" multiple accept="image/*,.pdf" onchange="handleNoteFiles(event)">
+          </div>
+          <div class="attach-list" id="n-preview"></div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addNote()">Save Note</button>
+    </div>
+
+    <div class="filter-row">
+      <button class="fbtn active" onclick="filterNotes('all',this)">All</button>
+      <button class="fbtn" onclick="filterNotes('image',this)">🖼 Images</button>
+      <button class="fbtn" onclick="filterNotes('pdf',this)">📄 PDFs</button>
+    </div>
+
+    <div id="notes-list"></div>
+  </div>
+
+</main>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lb-img" src="" alt="">
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────
+let profile = {};
+let tasks = [];
+let grades = [];
+let notes = [];
+let currentSubjects = []; // ongoing this semester
+let taskFilter = 'all';
+let noteFilter = 'all';
+let pendingNoteFiles = []; // { name, type, dataUrl }
+
+// ─── PERSIST ─────────────────────────────────────────
+function save() {
+  localStorage.setItem('sos_profile',  JSON.stringify(profile));
+  localStorage.setItem('sos_tasks',    JSON.stringify(tasks));
+  localStorage.setItem('sos_grades',   JSON.stringify(grades));
+  localStorage.setItem('sos_notes',    JSON.stringify(notes));
+  localStorage.setItem('sos_cursubs',  JSON.stringify(currentSubjects));
+}
+
+function load() {
+  try { profile         = JSON.parse(localStorage.getItem('sos_profile')  || '{}'); } catch(e) { profile = {}; }
+  try { tasks           = JSON.parse(localStorage.getItem('sos_tasks')    || '[]'); } catch(e) { tasks = []; }
+  try { grades          = JSON.parse(localStorage.getItem('sos_grades')   || '[]'); } catch(e) { grades = []; }
+  try { notes           = JSON.parse(localStorage.getItem('sos_notes')    || '[]'); } catch(e) { notes = []; }
+  try { currentSubjects = JSON.parse(localStorage.getItem('sos_cursubs')  || '[]'); } catch(e) { currentSubjects = []; }
+}
+
+// ─── DATE PICKER ─────────────────────────────────────
+function setupDatePicker() {
+  const dueInput = document.getElementById('t-due');
+  if (!dueInput) return;
+  dueInput.addEventListener('click', () => {
+    if (typeof dueInput.showPicker === 'function') {
+      try { dueInput.showPicker(); } catch (e) { /* ignore unsupported/blocked */ }
+    }
+  });
+}
+
+// ─── LOGIN GATE ───────────────────────────────────────
+function initLogin() {
+  const hasProfile = !!(profile && profile.name);
+  const newView  = document.getElementById('login-new');
+  const backView = document.getElementById('login-back');
+  const title = document.getElementById('login-title');
+  const sub   = document.getElementById('login-sub');
+
+  if (hasProfile) {
+    newView.style.display = 'none';
+    backView.style.display = 'block';
+    title.textContent = 'Welcome back';
+    sub.textContent = 'Glad to see you again';
+    const initials = profile.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) || '?';
+    document.getElementById('login-avatar').textContent = initials;
+    document.getElementById('login-name').textContent = profile.name;
+    document.getElementById('login-meta').textContent = profile.year || profile.branch || '';
+  } else {
+    backView.style.display = 'none';
+    newView.style.display = 'block';
+    title.textContent = 'Welcome to Study Matrix';
+    sub.textContent = 'Set up your profile to get started';
+  }
+}
+
+function loginSubmit() {
+  const name = document.getElementById('li-name').value.trim();
+  if (!name) { toast('Enter your name'); return; }
+  profile.name = name;
+  const roll = document.getElementById('li-roll').value.trim();
+  if (roll) profile.roll = roll;
+  save();
+  renderProfile();
+  dismissLogin();
+}
+
+function loginContinue() { dismissLogin(); }
+
+function loginSwitchUser() {
+  document.getElementById('login-back').style.display = 'none';
+  document.getElementById('login-new').style.display = 'block';
+  document.getElementById('login-title').textContent = 'Switch Profile';
+  document.getElementById('login-sub').textContent = 'Enter new details to continue';
+  document.getElementById('li-name').value = '';
+  document.getElementById('li-roll').value = '';
+  document.getElementById('li-name').focus();
+}
+
+function dismissLogin() {
+  document.getElementById('login-screen').classList.add('hide');
+  document.querySelector('.shell').classList.remove('app-hidden');
+  setTimeout(() => { document.getElementById('login-screen').style.display = 'none'; }, 550);
+}
+
+function showLoginAgain() {
+  const screen = document.getElementById('login-screen');
+  screen.style.display = 'flex';
+  document.querySelector('.shell').classList.add('app-hidden');
+  requestAnimationFrame(() => screen.classList.remove('hide'));
+  initLogin();
+}
+
+// ─── TOAST ───────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ─── NAV ─────────────────────────────────────────────
+function switchPanel(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  el.classList.add('active');
+  if (name === 'dashboard') renderDashboard();
+}
+
+// ─── PROFILE ─────────────────────────────────────────
+function saveProfile() {
+  profile.name    = document.getElementById('p-name').value.trim();
+  profile.roll    = document.getElementById('p-roll').value.trim();
+  profile.branch  = document.getElementById('p-branch').value;
+  profile.year    = document.getElementById('p-year').value;
+  profile.college = document.getElementById('p-college').value.trim();
+  profile.email   = document.getElementById('p-email').value.trim();
+  save();
+  renderProfile();
+}
+
+function renderProfile() {
+  const n = profile.name || 'Student';
+  const initials = n.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2) || '?';
+  document.getElementById('p-avatar-big').textContent = initials;
+  document.getElementById('p-name-big').textContent = n;
+  document.getElementById('p-branch-big').textContent = profile.branch || '—';
+  document.getElementById('p-roll-big').textContent = profile.roll || '—';
+  document.getElementById('sb-avatar').textContent = initials;
+  document.getElementById('sb-name').textContent = n;
+  document.getElementById('sb-meta').textContent = profile.year || '—';
+  document.getElementById('d-greeting').textContent = profile.name ? profile.name.split(' ')[0] : 'Student';
+
+  // populate form
+  if(profile.name)    document.getElementById('p-name').value = profile.name;
+  if(profile.roll)    document.getElementById('p-roll').value = profile.roll;
+  if(profile.branch)  document.getElementById('p-branch').value = profile.branch;
+  if(profile.year)    document.getElementById('p-year').value = profile.year;
+  if(profile.college) document.getElementById('p-college').value = profile.college;
+  if(profile.email)   document.getElementById('p-email').value = profile.email;
+}
+
+// ─── SUBJECT DROPDOWN SYNC ───────────────────────────
+function syncSubjectDropdowns() {
+  ['t-subject','n-subject'].forEach(id => {
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">${id==='t-subject'?'No subject':'General'}</option>` +
+      currentSubjects.map(s => `<option${cur===s?' selected':''}>${s}</option>`).join('');
+  });
+}
+
+// ─── CURRENT SUBJECTS ────────────────────────────────
+function addCurrentSubject() {
+  const inp = document.getElementById('cs-input');
+  const name = inp.value.trim();
+  if(!name) { toast('Enter subject name'); return; }
+  if(currentSubjects.includes(name)) { toast('Already added'); return; }
+  currentSubjects.push(name);
+  save(); syncSubjectDropdowns(); renderCurrentSubjects();
+  inp.value = '';
+  toast('Subject added!');
+}
+
+function removeCurrentSubject(name) {
+  currentSubjects = currentSubjects.filter(s => s !== name);
+  save(); syncSubjectDropdowns(); renderCurrentSubjects();
+}
+
+function renderCurrentSubjects() {
+  const list = document.getElementById('cs-list');
+  if(!currentSubjects.length) {
+    list.innerHTML = '<div style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);padding:8px 0">No subjects added yet — add them above so tasks can link to them</div>';
+    return;
+  }
+  list.innerHTML = currentSubjects.map(s => `
+    <div style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:5px 10px;margin:4px 4px 0 0">
+      <span style="font-size:0.82rem;font-weight:500">📚 ${s}</span>
+      <button onclick="removeCurrentSubject('${s.replace(/'/g,"\\\'")}')" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:0.75rem;line-height:1;padding:0 2px" title="Remove">✕</button>
+    </div>`).join('');
+}
+
+// ─── GRADE LETTER AUTO ───────────────────────────────
+function gradeLetterFromPoints(g) {
+  if(g === 10)  return 'S — Superior';
+  if(g >= 9)    return 'A — Excellent';
+  if(g >= 8)    return 'B — Very Good';
+  if(g >= 7)    return 'C — Good';
+  if(g >= 6)    return 'D — Average';
+  if(g >= 5)    return 'E — Pass';
+  return        'F — Fail';
+}
+
+function gradeLetterShort(g) {
+  if(g === 10) return 'S';
+  if(g >= 9)   return 'A';
+  if(g >= 8)   return 'B';
+  if(g >= 7)   return 'C';
+  if(g >= 6)   return 'D';
+  if(g >= 5)   return 'E';
+  return       'F';
+}
+
+function onGradeInput() {
+  const val = parseFloat(document.getElementById('g-grade').value);
+  const disp = document.getElementById('g-letter-display');
+  if(isNaN(val) || val < 0 || val > 10) {
+    disp.textContent = '— enter grade point above';
+    disp.style.color = 'var(--muted)';
+    return;
+  }
+  const letter = gradeLetterFromPoints(val);
+  const c = gc(val);
+  disp.textContent = letter;
+  disp.style.color = c.color;
+  disp.style.fontWeight = '600';
+}
+
+// ─── GRADE COLOR ─────────────────────────────────────
+function gc(g) {
+  if(g>=9)  return {bg:'#d1fae5',color:'#065f46',bar:'#00e5a0'};
+  if(g>=8)  return {bg:'#dbeafe',color:'#1e40af',bar:'#74b9ff'};
+  if(g>=7)  return {bg:'#fef9c3',color:'#854d0e',bar:'#ffd166'};
+  if(g>=6)  return {bg:'#ffedd5',color:'#9a3412',bar:'#ff9f43'};
+  if(g>=5)  return {bg:'#fee2e2',color:'#991b1b',bar:'#ff6b6b'};
+  return    {bg:'#f3f4f6',color:'#374151',bar:'#9ca3af'};
+}
+
+function calcCGPA(list) {
+  if(!list.length) return null;
+  let tot=0,cr=0;
+  list.forEach(s => { tot+=s.grade*s.credits; cr+=s.credits; });
+  return cr ? (tot/cr).toFixed(2) : null;
+}
+
+function cgpaLabel(c) {
+  if(!c) return 'No results yet';
+  const n = parseFloat(c);
+  if(n>=9) return 'Outstanding 🏆';
+  if(n>=8) return 'Excellent ⭐';
+  if(n>=7) return 'Very Good 👍';
+  if(n>=6) return 'Good 📈';
+  if(n>=5) return 'Average — keep going 💪';
+  return 'Needs improvement — you got this!';
+}
+
+// ─── GRADES ──────────────────────────────────────────
+function addGrade() {
+  const name    = document.getElementById('g-name').value.trim();
+  const sem     = document.getElementById('g-sem').value;
+  const grade   = parseFloat(document.getElementById('g-grade').value);
+  const credits = parseInt(document.getElementById('g-credits').value);
+  if(!name)           { toast('Enter subject name'); return; }
+  if(isNaN(grade)||grade<0||grade>10) { toast('Grade must be 0–10'); return; }
+  if(isNaN(credits)||credits<1)       { toast('Enter valid credits'); return; }
+  const letter = gradeLetterShort(grade);
+  grades.push({ id:Date.now(), name, sem, grade, credits, letter });
+  save(); renderGrades();
+  document.getElementById('g-name').value='';
+  document.getElementById('g-grade').value='';
+  document.getElementById('g-credits').value='';
+  document.getElementById('g-letter-display').textContent = '— enter grade point above';
+  document.getElementById('g-letter-display').style.color = 'var(--muted)';
+  document.getElementById('g-letter-display').style.fontWeight = 'normal';
+  toast('Result added!');
+}
+
+function deleteGrade(id) {
+  grades = grades.filter(g=>g.id!==id);
+  save(); syncSubjectDropdowns(); renderGrades();
+}
+
+function renderGrades() {
+  const cgpa = calcCGPA(grades);
+  document.getElementById('cgpa-big').textContent  = cgpa || '—';
+  document.getElementById('cgpa-label').textContent = cgpaLabel(cgpa);
+  document.getElementById('cgpa-subs').textContent  = grades.length;
+  document.getElementById('cgpa-sems').textContent  = [...new Set(grades.map(g=>g.sem))].length;
+
+  const list = document.getElementById('grades-list');
+  if(!grades.length) { list.innerHTML='<div class="empty"><div class="empty-icon">🎓</div>Results will appear here after each semester</div>'; return; }
+
+  const groups = {};
+  grades.forEach(g => { if(!groups[g.sem]) groups[g.sem]=[]; groups[g.sem].push(g); });
+
+  list.innerHTML = Object.keys(groups).sort().map(sem => {
+    const sgpa = calcCGPA(groups[sem]);
+    return `<div class="card" style="padding:0;overflow:hidden">
+      <table class="grade-table">
+        <tr class="sem-header"><td colspan="6">${sem} &nbsp;&nbsp; SGPA: ${sgpa}</td></tr>
+        <tr><th>Subject</th><th>Credits</th><th>Grade Point</th><th>Grade</th><th>Performance</th><th></th></tr>
+        ${groups[sem].map(s => {
+          const c = gc(s.grade);
+          return `<tr>
+            <td><strong>${s.name}</strong></td>
+            <td><span style="font-family:var(--mono);font-size:0.8rem">${s.credits}</span></td>
+            <td><span style="font-family:var(--mono);font-size:0.85rem;font-weight:600">${s.grade}</span></td>
+            <td><span class="grade-pill" style="background:${c.bg};color:${c.color}">${s.letter}</span></td>
+            <td style="width:160px">
+              <div class="progress-track"><div class="progress-fill" style="width:${s.grade*10}%;background:${c.bar}"></div></div>
+            </td>
+            <td><button class="btn-icon" onclick="deleteGrade(${s.id})">✕</button></td>
+          </tr>`;
+        }).join('')}
+      </table>
+    </div>`;
+  }).join('');
+}
+
+// ─── TASKS ───────────────────────────────────────────
+function addTask() {
+  const text = document.getElementById('t-text').value.trim();
+  const priority = document.getElementById('t-priority').value;
+  const subject  = document.getElementById('t-subject').value;
+  const note     = document.getElementById('t-note').value.trim();
+  const due      = document.getElementById('t-due').value;
+  if(!text) { toast('Enter a task'); return; }
+  tasks.unshift({ id:Date.now(), text, priority, subject, note, due, done:false, created:new Date().toLocaleDateString('en-IN') });
+  save(); renderTasks(); updateDashStats();
+  document.getElementById('t-text').value='';
+  document.getElementById('t-note').value='';
+  document.getElementById('t-due').value='';
+  toast('Task added!');
+}
+
+function toggleTask(id) {
+  const t = tasks.find(t=>t.id===id);
+  if(t) { t.done=!t.done; save(); renderTasks(); updateDashStats(); }
+}
+
+function deleteTask(id) {
+  tasks = tasks.filter(t=>t.id!==id);
+  save(); renderTasks(); updateDashStats();
+}
+
+function filterTask(f, btn) {
+  taskFilter = f;
+  document.querySelectorAll('#panel-tasks .filter-row .fbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTasks();
+}
+
+function getFilteredTasks() {
+  return tasks.filter(t => {
+    if(taskFilter==='pending') return !t.done;
+    if(taskFilter==='done')    return t.done;
+    if(taskFilter==='high')    return t.priority==='high'&&!t.done;
+    if(taskFilter==='medium')  return t.priority==='medium'&&!t.done;
+    if(taskFilter==='low')     return t.priority==='low'&&!t.done;
+    return true;
+  });
+}
+
+function renderTasks() {
+  const list = document.getElementById('tasks-list');
+  const ft = getFilteredTasks();
+  if(!ft.length) { list.innerHTML='<div class="empty"><div class="empty-icon">✅</div>Nothing here</div>'; return; }
+  list.innerHTML = ft.map(t => `
+    <div class="task-item ${t.done?'done':''}">
+      <div class="task-check" onclick="toggleTask(${t.id})"></div>
+      <div class="task-body">
+        <div class="task-text">${t.text}</div>
+        ${t.note ? `<div class="task-meta" style="margin-top:4px;color:var(--ink2)">${t.note}</div>` : ''}
+        <div class="task-meta" style="margin-top:4px">${t.subject?'📚 '+t.subject+' · ':''}${t.created}${t.due ? (() => {
+          const today = new Date(); today.setHours(0,0,0,0);
+          const due = new Date(t.due + 'T00:00:00');
+          const diff = Math.ceil((due - today) / 86400000);
+          const overdue = diff < 0;
+          const isToday = diff === 0;
+          const color = overdue ? '#b91c1c' : isToday ? '#a16207' : diff <= 3 ? '#9a3412' : 'var(--muted)';
+          const bg    = overdue ? '#fee2e2' : isToday ? '#fef9c3' : diff <= 3 ? '#ffedd5' : 'var(--surface)';
+          const label = overdue ? '⚠ Overdue by '+Math.abs(diff)+'d' : isToday ? '⚠ Due Today' : '📅 Due in '+diff+'d';
+          return ' <span style="font-family:var(--mono);font-size:0.58rem;padding:2px 7px;border-radius:5px;background:'+bg+';color:'+color+';font-weight:600">'+label+'</span>';
+        })() : ''}</div>
+      </div>
+      <div class="task-actions">
+        <span class="p-tag p-${t.priority}">${t.priority}</span>
+        <button class="btn-icon" onclick="deleteTask(${t.id})">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── NOTES / FILES ────────────────────────────────────
+function handleNoteFiles(e) {
+  const files = Array.from(e.target.files);
+  const preview = document.getElementById('n-preview');
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const obj = { name:file.name, type:file.type.startsWith('image')?'image':'pdf', dataUrl: ev.target.result };
+      pendingNoteFiles.push(obj);
+      renderPendingFiles();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderPendingFiles() {
+  const preview = document.getElementById('n-preview');
+  preview.innerHTML = pendingNoteFiles.map((f,i) => {
+    if(f.type==='image') {
+      return `<div class="attach-thumb"><img src="${f.dataUrl}" onclick="openLightbox('${f.dataUrl}')"><button class="attach-rm" onclick="removePending(${i})">✕</button></div>`;
+    } else {
+      return `<div style="position:relative"><div class="attach-pdf"><div class="attach-pdf-icon">📄</div><div class="attach-pdf-label">${f.name}</div></div><button class="attach-rm" onclick="removePending(${i})" style="position:absolute;top:2px;right:2px">✕</button></div>`;
+    }
+  }).join('');
+}
+
+function removePending(i) { pendingNoteFiles.splice(i,1); renderPendingFiles(); }
+
+function addNote() {
+  const title   = document.getElementById('n-title').value.trim();
+  const subject = document.getElementById('n-subject').value;
+  const desc    = document.getElementById('n-desc').value.trim();
+  if(!title) { toast('Enter a title'); return; }
+  if(!pendingNoteFiles.length) { toast('Attach at least one file'); return; }
+
+  notes.unshift({ id:Date.now(), title, subject, desc, files:[...pendingNoteFiles], created:new Date().toLocaleDateString('en-IN') });
+  save(); renderNotes(); updateDashStats();
+
+  document.getElementById('n-title').value='';
+  document.getElementById('n-desc').value='';
+  pendingNoteFiles=[];
+  document.getElementById('n-preview').innerHTML='';
+  document.getElementById('n-files').value='';
+  toast('Note saved!');
+}
+
+function deleteNote(id) {
+  notes = notes.filter(n=>n.id!==id);
+  save(); renderNotes(); updateDashStats();
+}
+
+function filterNotes(f, btn) {
+  noteFilter = f;
+  document.querySelectorAll('#panel-notes .filter-row .fbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderNotes();
+}
+
+function renderNotes() {
+  const list = document.getElementById('notes-list');
+  let filtered = notes;
+  if(noteFilter==='image') filtered = notes.filter(n=>n.files.some(f=>f.type==='image'));
+  if(noteFilter==='pdf')   filtered = notes.filter(n=>n.files.some(f=>f.type==='pdf'));
+
+  if(!filtered.length) { list.innerHTML='<div class="empty"><div class="empty-icon">📎</div>No notes yet</div>'; return; }
+
+  list.innerHTML = filtered.map(n => `
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div style="font-size:1rem;font-weight:600">${n.title}</div>
+          <div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:3px">
+            ${n.subject?'📚 '+n.subject+' · ':''}${n.created}
+          </div>
+          ${n.desc?`<div style="font-size:0.82rem;color:var(--ink2);margin-top:6px">${n.desc}</div>`:''}
+        </div>
+        <button class="btn-icon" onclick="deleteNote(${n.id})">✕</button>
+      </div>
+      <div class="attach-list">
+        ${n.files.map((f,fi) => {
+          if(f.type==='image') {
+            return `<div class="attach-thumb"><img src="${f.dataUrl}" onclick="openLightbox('${f.dataUrl}')" title="${f.name}"></div>`;
+          } else {
+            return `<a class="attach-pdf" href="${f.dataUrl}" download="${f.name}" title="${f.name}">
+              <div class="attach-pdf-icon">📄</div>
+              <div class="attach-pdf-label">${f.name}</div>
+            </a>`;
+          }
+        }).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── LIGHTBOX ────────────────────────────────────────
+function openLightbox(src) {
+  document.getElementById('lb-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+
+// ─── DASHBOARD ───────────────────────────────────────
+function updateDashStats() {
+  const cgpa = calcCGPA(grades);
+  document.getElementById('d-cgpa').textContent  = cgpa || '—';
+  document.getElementById('d-tasks').textContent = tasks.filter(t=>!t.done).length;
+  document.getElementById('d-subs').textContent  = grades.length;
+  document.getElementById('d-notes').textContent = notes.length;
+}
+
+function renderDashboard() {
+  updateDashStats();
+
+  // high priority pending tasks
+  const high = tasks.filter(t=>t.priority==='high'&&!t.done).slice(0,4);
+  const dtl = document.getElementById('d-task-list');
+  dtl.innerHTML = high.length ? high.map(t=>`
+    <div class="task-item" style="margin-bottom:6px" onclick="toggleTask(${t.id});renderDashboard()">
+      <div class="task-check"></div>
+      <div class="task-body">
+        <div class="task-text" style="font-size:0.85rem">${t.text}</div>
+        <div class="task-meta">${t.subject||'General'}</div>
+      </div>
+      <span class="p-tag p-high">high</span>
+    </div>`).join('') : '<div class="empty" style="padding:20px"><div class="empty-icon">🎯</div>All clear!</div>';
+
+  // perf chart
+  const chart = document.getElementById('d-perf-chart');
+  chart.innerHTML = grades.length ? grades.slice(-8).map(s => {
+    const c = gc(s.grade);
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div>
+      <div style="flex:1;background:var(--surface);border-radius:99px;height:7px;overflow:hidden">
+        <div style="width:${s.grade*10}%;height:100%;background:${c.bar};border-radius:99px;transition:width 0.7s"></div>
+      </div>
+      <div style="font-family:var(--mono);font-size:0.68rem;font-weight:500;width:30px;text-align:right">${s.grade}</div>
+    </div>`;
+  }).join('') : '<div class="empty" style="padding:20px"><div class="empty-icon">📊</div>No results yet</div>';
+}
+
+// ─── CGPA SCALE (static reference list) ──────────────
+function renderCgpaScale() {
+  const scale = [
+    ['S','10 — Superior','#00e5a0',100],
+    ['A','9 — Excellent','#74b9ff',90],
+    ['B','8 — Very Good','#ffd166',80],
+    ['C','7 — Good','#ff9f43',70],
+    ['D','6 — Average','#ff8c69',60],
+    ['E','5 — Pass','#ff6b6b',50]
+  ];
+  document.getElementById('cgpa-scale').innerHTML = scale.map(([g,r,c,w]) => `
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-family:var(--mono);font-size:0.65rem;color:${c};width:14px;font-weight:700">${g}</span>
+      <div style="flex:1;height:4px;background:rgba(255,255,255,0.08);border-radius:99px"><div style="width:${w}%;height:100%;background:${c};border-radius:99px"></div></div>
+      <span style="font-family:var(--mono);font-size:0.58rem;color:rgba(255,255,255,0.3)">${r}</span>
+    </div>`).join('');
+}
+
+// ─── INIT ─────────────────────────────────────────────
+load();
+renderProfile();
+renderCurrentSubjects();
+renderTasks();
+renderGrades();
+renderNotes();
+syncSubjectDropdowns();
+renderDashboard();
+renderCgpaScale();
+setupDatePicker();
+initLogin();
+</script>
+</body>
+</html>
